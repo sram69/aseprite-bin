@@ -25,3 +25,10 @@ jobs:
           name: aseprite-linux
           path: github
           if-no-files-found: error
+
+      - name: Upload AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: Aseprite.AppImage
+          path: github/Aseprite.AppImage
+          if-no-files-found: error

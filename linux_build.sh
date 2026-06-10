@@ -117,11 +117,64 @@ cp -r "aseprite/docs" "${OUTDIR}/docs" 2>/dev/null || true
 cp -r "aseprite/build/bin/aseprite" "${OUTDIR}/" 2>/dev/null || cp -r "aseprite/build/bin/aseprite" "${OUTDIR}/" 2>/dev/null || true
 cp -r "aseprite/build/bin/data" "${OUTDIR}/data" 2>/dev/null || true
 
+# Build an AppImage (Aseprite.AppImage)
+echo "Building AppImage"
+APPDIR="${WORKDIR}/AppDir"
+rm -rf "${APPDIR}"
+mkdir -p "${APPDIR}/usr/bin"
+mkdir -p "${APPDIR}/usr/share/applications"
+for s in 16 20 24 28 32 48 64 128 256; do
+  mkdir -p "${APPDIR}/usr/share/icons/hicolor/${s}x${s}/apps"
+done
+
+# Copy binary and data next to it (Aseprite resolves data/ relative to the executable)
+cp "aseprite/build/bin/aseprite" "${APPDIR}/usr/bin/aseprite"
+cp -r "aseprite/build/bin/data" "${APPDIR}/usr/bin/data"
+
+# Icons: use the PNG variants shipped with Aseprite; the 256px one is the AppImage icon
+for s in 16 20 24 28 32 48 64 128 256; do
+  if [ -f "aseprite/data/icons/ase${s}.png" ]; then
+    cp "aseprite/data/icons/ase${s}.png" "${APPDIR}/usr/share/icons/hicolor/${s}x${s}/apps/aseprite.png"
+  fi
+done
+cp "aseprite/data/icons/ase256.png" "${APPDIR}/aseprite.png"
+
+# Desktop entry
+cat > "${APPDIR}/aseprite.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=Aseprite
+GenericName=Sprite Editor
+Comment=Animated sprite editor & pixel art tool
+Exec=aseprite %F
+Icon=aseprite
+Terminal=false
+Categories=Graphics;2DGraphics;RasterGraphics;
+EOF
+cp "${APPDIR}/aseprite.desktop" "${APPDIR}/usr/share/applications/aseprite.desktop"
+
+# AppRun launcher
+cat > "${APPDIR}/AppRun" <<'EOF'
+#!/bin/bash
+HERE="$(dirname "$(readlink -f "${0}")")"
+exec "${HERE}/usr/bin/aseprite" "$@"
+EOF
+chmod +x "${APPDIR}/AppRun"
+
+# Fetch appimagetool and generate the AppImage
+APPIMAGETOOL="${WORKDIR}/appimagetool-x86_64.AppImage"
+if [ ! -f "${APPIMAGETOOL}" ]; then
+  curl -fsSL "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage" -o "${APPIMAGETOOL}"
+  chmod +x "${APPIMAGETOOL}"
+fi
+ARCH=x86_64 "${APPIMAGETOOL}" --appimage-extract-and-run "${APPDIR}" "${WORKDIR}/Aseprite.AppImage"
+
 # If running inside GitHub Actions, move to github/ and expose output variable
 if [ -n "${GITHUB_WORKFLOW:-}" ]; then
   mkdir -p github
   mv "${OUTDIR}" github/
+  cp "${WORKDIR}/Aseprite.AppImage" github/Aseprite.AppImage
   echo "ASEPRITE_VERSION=${ASEPRITE_VERSION}" >> "${GITHUB_OUTPUT:-/dev/null}" || true
 fi
 
-echo "Done. Packaged: ${OUTDIR}"
+echo "Done. Packaged: ${OUTDIR} and Aseprite.AppImage"
