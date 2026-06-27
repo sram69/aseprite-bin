@@ -1,8 +1,0 @@
-Flask
-Flask-Limiter
-requests
-PyGithub
-python-dotenv
-semver
-flask-cors
-cachetools
