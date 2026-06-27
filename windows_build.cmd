@@ -74,21 +74,15 @@ python -c "v = open('aseprite/src/ver/CMakeLists.txt').read(); open('aseprite/sr
 
 rem *** download skia
 
-if exist aseprite\laf\misc\skia-tag.txt (
-  set /p SKIA_VERSION=<aseprite\laf\misc\skia-tag.txt
-) else (
-  if "%ASEPRITE_VERSION:beta=%" neq "%ASEPRITE_VERSION%" (
-    set SKIA_VERSION=m124-08a5439a6b
-  ) else (
-    set SKIA_VERSION=m102-861e4743af
-  )
-)
+for /f "delims=" %%u in ('bash -lc "cd aseprite && source laf/misc/skia-url.sh | xargs"') do set SKIA_URL=%%u
+for %%f in ("%SKIA_URL%") do set SKIA_FILE=%%~nxf
+for %%f in ("%SKIA_FILE%") do set SKIA_VERSION=%%~nf
 
 if not exist skia-%SKIA_VERSION% (
   mkdir skia-%SKIA_VERSION%
   pushd skia-%SKIA_VERSION%
-  curl -sfLO https://github.com/aseprite/skia/releases/download/%SKIA_VERSION%/Skia-Windows-Release-x64.zip || echo failed to download skia && exit /b 1
-  %SZIP% x -y Skia-Windows-Release-x64.zip
+  curl --ssl-revoke-best-effort -sfLO %SKIA_URL% || echo failed to download skia && exit /b 1
+  %SZIP% x -y %SKIA_FILE%
   popd
 )
 
@@ -108,13 +102,16 @@ cmake.exe                                                     ^
   -DCMAKE_POLICY_DEFAULT_CMP0091=NEW                          ^
   -DCMAKE_POLICY_DEFAULT_CMP0092=NEW                          ^
   -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded                  ^
+  -DENABLE_TESTS=ON                                           ^
+  -DENABLE_SCRIPTING=ON                                       ^
   -DENABLE_CCACHE=OFF                                         ^
   -DOPENSSL_USE_STATIC_LIBS=TRUE                              ^
   -DLAF_BACKEND=skia                                          ^
   -DSKIA_DIR=%CD%\skia-%SKIA_VERSION%                         ^
   -DSKIA_LIBRARY_DIR=%CD%\skia-%SKIA_VERSION%\out\Release-x64 ^
   -DSKIA_OPENGL_LIBRARY=                                      || echo failed to configure build && exit /b 1
-ninja.exe -C build || echo build failed && exit /b 1
+ninja.exe -C build aseprite || echo build failed && exit /b 1
+ctest.exe --test-dir build --output-on-failure || echo tests failed && exit /b 1
 
 
 rem *** create output folder

@@ -1,146 +1,82 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Fail on errors
-set -e
-
-# Install dependencies
-sudo apt-get update
-sudo apt-get install -y \
-  g++ \
-  clang \
-  git \
-  unzip \
-  curl \
-  build-essential \
-  cmake \
-  ninja-build \
-  libx11-dev \
-  libxcursor-dev \
-  libxi-dev \
-  libgl1-mesa-dev \
-  libfontconfig1-dev \
-  libfreetype6-dev \
-  libharfbuzz-dev \
-  libpng-dev \
-  zlib1g-dev \
-  libjpeg-dev \
-  libwebp-dev \
-  libxrandr-dev
-
-# Accept ASEPRITE_VERSION from env; if empty, will be detected after cloning/updating the repo
-if [ -n "${ASEPRITE_VERSION:-}" ]; then
-  echo "Using ASEPRITE_VERSION from environment: $ASEPRITE_VERSION"
-else
-  echo "ASEPRITE_VERSION not set; will detect latest tag from the aseprite repository after cloning/updating."
-fi
-
-# Working in current repo workspace
 WORKDIR="${PWD}"
-echo "Workspace: ${WORKDIR}"
+ASEPRITE_DIR="${WORKDIR}/aseprite"
+BUILD_DIR="${ASEPRITE_DIR}/build"
+BUILD_TYPE="${BUILD_TYPE:-Release}"
+SKIA_ARCH="x64"
 
-# Clone or update aseprite
-if [ ! -d "${WORKDIR}/aseprite" ]; then
-  echo "Cloning Aseprite"
-  git clone --recursive https://github.com/aseprite/aseprite.git "${WORKDIR}/aseprite"
+sudo apt-get update -qq
+sudo apt-get install -y \
+  build-essential clang git unzip curl cmake ninja-build xvfb \
+  libpixman-1-dev libfreetype6-dev libharfbuzz-dev zlib1g-dev \
+  libx11-dev libxcursor-dev libxi-dev libxrandr-dev libgl1-mesa-dev \
+  libfontconfig1-dev libpng-dev libjpeg-dev libwebp-dev
+
+if [ ! -d "${ASEPRITE_DIR}/.git" ]; then
+  git clone --recursive https://github.com/aseprite/aseprite.git "${ASEPRITE_DIR}"
 else
-  echo "Updating local aseprite"
-  cd "${WORKDIR}/aseprite"
-  git fetch --tags origin
-  cd "${WORKDIR}"
+  git -C "${ASEPRITE_DIR}" fetch --tags origin
 fi
 
 if [ -z "${ASEPRITE_VERSION:-}" ]; then
-  echo "Detecting latest tag from local aseprite repository..."
-  git -C "${WORKDIR}/aseprite" fetch --tags --quiet || true
-  ASEPRITE_VERSION=$(git -C "${WORKDIR}/aseprite" tag --sort=creatordate | tail -n1 || true)
+  ASEPRITE_VERSION="$(git -C "${ASEPRITE_DIR}" tag --sort=creatordate | tail -n1)"
 fi
-echo "Building aseprite $ASEPRITE_VERSION"
+[ -n "${ASEPRITE_VERSION}" ] || { echo "Unable to detect ASEPRITE_VERSION" >&2; exit 1; }
+echo "Building Aseprite ${ASEPRITE_VERSION} (${BUILD_TYPE})"
 
-# Checkout requested tag/commit
-cd "${WORKDIR}/aseprite"
-git clean -fdx
-git submodule foreach --recursive git clean -xfd || true
-git fetch --depth=1 --no-tags origin "${ASEPRITE_VERSION}":refs/remotes/origin/"${ASEPRITE_VERSION}" || true
-git -c advice.detachedHead=false switch --detach "${ASEPRITE_VERSION}" || git checkout "${ASEPRITE_VERSION}" || true
-git submodule update --init --recursive
-cd "${WORKDIR}"
+git -C "${ASEPRITE_DIR}" clean -fdx
+git -C "${ASEPRITE_DIR}" submodule foreach --recursive git clean -xfd || true
+git -C "${ASEPRITE_DIR}" fetch --depth=1 --no-tags origin "${ASEPRITE_VERSION}:refs/remotes/origin/${ASEPRITE_VERSION}" || true
+git -C "${ASEPRITE_DIR}" -c advice.detachedHead=false switch --detach "${ASEPRITE_VERSION}" || git -C "${ASEPRITE_DIR}" checkout "${ASEPRITE_VERSION}"
+git -C "${ASEPRITE_DIR}" submodule update --init --recursive
 
-# Determine SKIA version (aseprite/laf/misc/skia-tag.txt if present, otherwise fallback similar to windows logic)
-if [ -f "aseprite/laf/misc/skia-tag.txt" ]; then
-  SKIA_VERSION=$(cat aseprite/laf/misc/skia-tag.txt)
-else
-  if [[ "${ASEPRITE_VERSION}" == *beta* ]]; then
-    SKIA_VERSION="m124-08a5439a6b"
-  else
-    SKIA_VERSION="m102-861e4743af"
-  fi
-fi
-echo "Using SKIA_VERSION=${SKIA_VERSION}"
-
-# Download prebuilt Skia (Linux) release for the chosen tag
-SKIA_DIR="${WORKDIR}/skia-${SKIA_VERSION}"
-SKIA_ZIP="Skia-Linux-Release-x64.zip"
-SKIA_URL="https://github.com/aseprite/skia/releases/download/${SKIA_VERSION}/${SKIA_ZIP}"
-
-if [ ! -d "${SKIA_DIR}" ]; then
-  echo "Downloading Skia from ${SKIA_URL}"
-  mkdir -p "${SKIA_DIR}"
-  curl -fsSL "${SKIA_URL}" -o "${WORKDIR}/${SKIA_ZIP}"
-  unzip -o "${WORKDIR}/${SKIA_ZIP}" -d "${SKIA_DIR}"
-  rm -f "${WORKDIR}/${SKIA_ZIP}"
-else
-  echo "Skia already present at ${SKIA_DIR}"
+SKIA_URL="$(bash -c "cd '${ASEPRITE_DIR}' && source laf/misc/skia-url.sh" | xargs)"
+SKIA_FILE="$(basename "${SKIA_URL}")"
+SKIA_DIR="${WORKDIR}/skia"
+if [ ! -d "${SKIA_DIR}/out/Release-${SKIA_ARCH}" ]; then
+  rm -rf "${SKIA_DIR}"
+  curl --ssl-revoke-best-effort -fsSL -o "${WORKDIR}/${SKIA_FILE}" "${SKIA_URL}"
+  unzip -q "${WORKDIR}/${SKIA_FILE}" -d "${SKIA_DIR}"
+  rm -f "${WORKDIR}/${SKIA_FILE}"
 fi
 
-# Prepare build directory and run CMake
-mkdir -p "${WORKDIR}/aseprite/build"
-cd "${WORKDIR}/aseprite/build"
-
-cmake \
-  -DCMAKE_BUILD_TYPE=Release \
+cmake -S "${ASEPRITE_DIR}" -B "${BUILD_DIR}" -G Ninja \
+  -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
+  -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+  -DCMAKE_POLICY_DEFAULT_CMP0074=NEW \
+  -DCMAKE_POLICY_DEFAULT_CMP0091=NEW \
+  -DCMAKE_POLICY_DEFAULT_CMP0092=NEW \
+  -DENABLE_TESTS=ON \
+  -DENABLE_SCRIPTING=ON \
+  -DENABLE_CCACHE=OFF \
   -DLAF_BACKEND=skia \
   -DSKIA_DIR="${SKIA_DIR}" \
-  -DSKIA_LIBRARY_DIR="${SKIA_DIR}/out/Release-x64" \
-  -DSKIA_LIBRARY="${SKIA_DIR}/out/Release-x64/libskia.a" \
-  -G Ninja \
-  ..
+  -DSKIA_LIBRARY_DIR="${SKIA_DIR}/out/Release-${SKIA_ARCH}"
 
-ninja aseprite
+ninja -C "${BUILD_DIR}" aseprite
+xvfb-run ctest --test-dir "${BUILD_DIR}" --output-on-failure
 
-# Package output similar to windows script: create aseprite-<tag> with exe and data
-cd "${WORKDIR}"
-OUTDIR="aseprite-${ASEPRITE_VERSION}"
+OUTDIR="${WORKDIR}/aseprite-${ASEPRITE_VERSION}"
 rm -rf "${OUTDIR}"
 mkdir -p "${OUTDIR}"
 echo "# This file is here so Aseprite behaves as a portable program" > "${OUTDIR}/aseprite.ini"
-cp -r "aseprite/docs" "${OUTDIR}/docs" 2>/dev/null || true
-cp -r "aseprite/build/bin/aseprite" "${OUTDIR}/" 2>/dev/null || cp -r "aseprite/build/bin/aseprite" "${OUTDIR}/" 2>/dev/null || true
-cp -r "aseprite/build/bin/data" "${OUTDIR}/data" 2>/dev/null || true
+cp -r "${ASEPRITE_DIR}/docs" "${OUTDIR}/docs" 2>/dev/null || true
+cp "${BUILD_DIR}/bin/aseprite" "${OUTDIR}/"
+cp -r "${BUILD_DIR}/bin/data" "${OUTDIR}/data"
 
-# Build an AppImage (Aseprite.AppImage)
-echo "Building AppImage"
 APPDIR="${WORKDIR}/AppDir"
 rm -rf "${APPDIR}"
-mkdir -p "${APPDIR}/usr/bin"
-mkdir -p "${APPDIR}/usr/share/applications"
+mkdir -p "${APPDIR}/usr/bin" "${APPDIR}/usr/share/applications"
 for s in 16 20 24 28 32 48 64 128 256; do
   mkdir -p "${APPDIR}/usr/share/icons/hicolor/${s}x${s}/apps"
+  [ -f "${ASEPRITE_DIR}/data/icons/ase${s}.png" ] && cp "${ASEPRITE_DIR}/data/icons/ase${s}.png" "${APPDIR}/usr/share/icons/hicolor/${s}x${s}/apps/aseprite.png"
 done
-
-# Copy binary and data next to it (Aseprite resolves data/ relative to the executable)
-cp "aseprite/build/bin/aseprite" "${APPDIR}/usr/bin/aseprite"
-cp -r "aseprite/build/bin/data" "${APPDIR}/usr/bin/data"
-
-# Icons: use the PNG variants shipped with Aseprite; the 256px one is the AppImage icon
-for s in 16 20 24 28 32 48 64 128 256; do
-  if [ -f "aseprite/data/icons/ase${s}.png" ]; then
-    cp "aseprite/data/icons/ase${s}.png" "${APPDIR}/usr/share/icons/hicolor/${s}x${s}/apps/aseprite.png"
-  fi
-done
-cp "aseprite/data/icons/ase256.png" "${APPDIR}/aseprite.png"
-
-# Desktop entry
-cat > "${APPDIR}/aseprite.desktop" <<EOF
+cp "${ASEPRITE_DIR}/data/icons/ase256.png" "${APPDIR}/aseprite.png"
+cp "${BUILD_DIR}/bin/aseprite" "${APPDIR}/usr/bin/aseprite"
+cp -r "${BUILD_DIR}/bin/data" "${APPDIR}/usr/bin/data"
+cat > "${APPDIR}/aseprite.desktop" <<'DESKTOP'
 [Desktop Entry]
 Type=Application
 Name=Aseprite
@@ -150,18 +86,15 @@ Exec=aseprite %F
 Icon=aseprite
 Terminal=false
 Categories=Graphics;2DGraphics;RasterGraphics;
-EOF
+DESKTOP
 cp "${APPDIR}/aseprite.desktop" "${APPDIR}/usr/share/applications/aseprite.desktop"
-
-# AppRun launcher
-cat > "${APPDIR}/AppRun" <<'EOF'
-#!/bin/bash
+cat > "${APPDIR}/AppRun" <<'APPRUN'
+#!/usr/bin/env bash
 HERE="$(dirname "$(readlink -f "${0}")")"
 exec "${HERE}/usr/bin/aseprite" "$@"
-EOF
+APPRUN
 chmod +x "${APPDIR}/AppRun"
 
-# Fetch appimagetool and generate the AppImage
 APPIMAGETOOL="${WORKDIR}/appimagetool-x86_64.AppImage"
 if [ ! -f "${APPIMAGETOOL}" ]; then
   curl -fsSL "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage" -o "${APPIMAGETOOL}"
@@ -169,11 +102,11 @@ if [ ! -f "${APPIMAGETOOL}" ]; then
 fi
 ARCH=x86_64 "${APPIMAGETOOL}" --appimage-extract-and-run "${APPDIR}" "${WORKDIR}/Aseprite.AppImage"
 
-# If running inside GitHub Actions, move to github/ and expose output variable
 if [ -n "${GITHUB_WORKFLOW:-}" ]; then
-  mkdir -p github
-  mv "${OUTDIR}" github/
-  cp "${WORKDIR}/Aseprite.AppImage" github/Aseprite.AppImage
+  mkdir -p "${WORKDIR}/github"
+  rm -rf "${WORKDIR}/github/${OUTDIR##*/}"
+  mv "${OUTDIR}" "${WORKDIR}/github/"
+  cp "${WORKDIR}/Aseprite.AppImage" "${WORKDIR}/github/Aseprite.AppImage"
   echo "ASEPRITE_VERSION=${ASEPRITE_VERSION}" >> "${GITHUB_OUTPUT:-/dev/null}" || true
 fi
 
