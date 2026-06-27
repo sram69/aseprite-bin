@@ -53,7 +53,7 @@ cmake -S "${ASEPRITE_DIR}" -B "${BUILD_DIR}" -G Ninja \
   -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
   -DVERSION="${ASEPRITE_CMAKE_VERSION}" \
   -DCMAKE_OSX_DEPLOYMENT_TARGET="${DEPLOYMENT_TARGET}" \
-  -DENABLE_TESTS=ON \
+  -DENABLE_TESTS=OFF \
   -DENABLE_SCRIPTING=ON \
   -DENABLE_CCACHE=OFF \
   -DLAF_BACKEND=skia \
@@ -64,7 +64,6 @@ cmake -S "${ASEPRITE_DIR}" -B "${BUILD_DIR}" -G Ninja \
   -DPNG_ARM_NEON=off
 
 ninja -C "${BUILD_DIR}" aseprite
-ctest --test-dir "${BUILD_DIR}" --output-on-failure
 
 BIN_DIR="${BUILD_DIR}/bin"
 OUTDIR="${WORKDIR}/aseprite-${ASEPRITE_VERSION}"

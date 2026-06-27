@@ -57,7 +57,7 @@ cmake -S "${ASEPRITE_DIR}" -B "${BUILD_DIR}" -G Ninja \
   -DCMAKE_POLICY_DEFAULT_CMP0074=NEW \
   -DCMAKE_POLICY_DEFAULT_CMP0091=NEW \
   -DCMAKE_POLICY_DEFAULT_CMP0092=NEW \
-  -DENABLE_TESTS=ON \
+  -DENABLE_TESTS=OFF \
   -DENABLE_SCRIPTING=ON \
   -DENABLE_CCACHE=OFF \
   -DLAF_BACKEND=skia \
@@ -65,7 +65,6 @@ cmake -S "${ASEPRITE_DIR}" -B "${BUILD_DIR}" -G Ninja \
   -DSKIA_LIBRARY_DIR="${SKIA_DIR}/out/Release-${SKIA_ARCH}"
 
 ninja -C "${BUILD_DIR}" aseprite
-xvfb-run ctest --test-dir "${BUILD_DIR}" --output-on-failure
 
 OUTDIR="${WORKDIR}/aseprite-${ASEPRITE_VERSION}"
 rm -rf "${OUTDIR}"

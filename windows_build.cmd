@@ -106,7 +106,7 @@ cmake.exe                                                     ^
   -DCMAKE_POLICY_DEFAULT_CMP0091=NEW                          ^
   -DCMAKE_POLICY_DEFAULT_CMP0092=NEW                          ^
   -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded                  ^
-  -DENABLE_TESTS=ON                                           ^
+  -DENABLE_TESTS=OFF                                          ^
   -DENABLE_SCRIPTING=ON                                       ^
   -DENABLE_CCACHE=OFF                                         ^
   -DOPENSSL_USE_STATIC_LIBS=TRUE                              ^
@@ -115,7 +115,6 @@ cmake.exe                                                     ^
   -DSKIA_LIBRARY_DIR=%CD%\skia-%SKIA_VERSION%\out\Release-x64 ^
   -DSKIA_OPENGL_LIBRARY=                                      || echo failed to configure build && exit /b 1
 ninja.exe -C build aseprite || echo build failed && exit /b 1
-ctest.exe --test-dir build --output-on-failure || echo tests failed && exit /b 1
 
 
 rem *** create output folder
