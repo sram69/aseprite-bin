@@ -30,5 +30,5 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: Aseprite.AppImage
-          path: github/Aseprite.AppImage
+          path: Aseprite.AppImage
           if-no-files-found: error
