@@ -69,7 +69,10 @@ call git -C aseprite fetch --quiet --depth=1 --no-tags origin %ASEPRITE_VERSION%
 call git -C aseprite reset --quiet --hard origin/%ASEPRITE_VERSION%                                                     || echo "failed to update repo"       && exit /b 1
 call git -C aseprite submodule update --init --recursive                                                                || echo "failed to update submodules" && exit /b 1
 
-python -c "v = open('aseprite/src/ver/CMakeLists.txt').read(); open('aseprite/src/ver/CMakeLists.txt', 'w').write(v.replace('1.x-dev', '%ASEPRITE_VERSION%'[1:]))"
+set ASEPRITE_CMAKE_VERSION=%ASEPRITE_VERSION%
+if "%ASEPRITE_CMAKE_VERSION:~0,1%" equ "v" set ASEPRITE_CMAKE_VERSION=%ASEPRITE_CMAKE_VERSION:~1%
+set ASEPRITE_CMAKE_VERSION=%ASEPRITE_CMAKE_VERSION%-dev
+python -c "from pathlib import Path; p = Path('aseprite/src/ver/CMakeLists.txt'); v = p.read_text(); p.write_text(v.replace('set(VERSION \"1.x-dev\")', 'set(VERSION \"1.x-dev\" CACHE STRING \"Version of Aseprite\")'))"
 
 
 rem *** download skia
@@ -97,6 +100,7 @@ cmake.exe                                                     ^
   -S aseprite                                                 ^
   -B build                                                    ^
   -DCMAKE_BUILD_TYPE=Release                                  ^
+  -DVERSION=%ASEPRITE_CMAKE_VERSION%                          ^
   -DCMAKE_POLICY_VERSION_MINIMUM=3.5                          ^
   -DCMAKE_POLICY_DEFAULT_CMP0074=NEW                          ^
   -DCMAKE_POLICY_DEFAULT_CMP0091=NEW                          ^

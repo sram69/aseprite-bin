@@ -31,6 +31,14 @@ git -C "${ASEPRITE_DIR}" fetch --depth=1 --no-tags origin "${ASEPRITE_VERSION}:r
 git -C "${ASEPRITE_DIR}" -c advice.detachedHead=false switch --detach "${ASEPRITE_VERSION}" || git -C "${ASEPRITE_DIR}" checkout "${ASEPRITE_VERSION}"
 git -C "${ASEPRITE_DIR}" submodule update --init --recursive
 
+ASEPRITE_CMAKE_VERSION="${ASEPRITE_VERSION#v}-dev"
+python3 - <<PY2
+from pathlib import Path
+path = Path(r"${ASEPRITE_DIR}/src/ver/CMakeLists.txt")
+text = path.read_text()
+path.write_text(text.replace('set(VERSION "1.x-dev")', 'set(VERSION "1.x-dev" CACHE STRING "Version of Aseprite")'))
+PY2
+
 SKIA_URL="$(bash -c "cd '${ASEPRITE_DIR}' && source laf/misc/skia-url.sh" | xargs)"
 SKIA_FILE="$(basename "${SKIA_URL}")"
 SKIA_DIR="${WORKDIR}/skia"
@@ -43,6 +51,7 @@ fi
 
 cmake -S "${ASEPRITE_DIR}" -B "${BUILD_DIR}" -G Ninja \
   -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
+  -DVERSION="${ASEPRITE_CMAKE_VERSION}" \
   -DCMAKE_OSX_DEPLOYMENT_TARGET="${DEPLOYMENT_TARGET}" \
   -DENABLE_TESTS=ON \
   -DENABLE_SCRIPTING=ON \
