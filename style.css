@@ -41,149 +41,6 @@ header {
     margin-right: auto;
 }
 
-ul {
-    list-style-type: none;
-    min-height: 100px;
-}
-
-select {
-    border-radius: 6px;
-    background-color: transparent;
-    border: 1px solid #2a2a2e;
-    color: #8B8B9C;
-    padding: 12px 32px 12px 12px;
-    font-size: 0.9em;
-
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-}
-
-.select-wrapper {
-    position: relative;
-    display: inline-block;
-    max-width: 40%;
-}
-
-.select-wrapper::after {
-    content: '>';
-    font-weight: bold;
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%) rotate(90deg); 
-    color: #8B8B9C;
-    pointer-events: none;
-    font-size: 0.9em;
-}
-
-.select-wrapper select {
-    border-radius: 6px;
-    background-color: transparent;
-    border: 1px solid #2a2a2e;
-    color: #8B8B9C;
-    padding: 12px 32px 12px 12px;
-    font-size: 0.9em;
-    appearance: none;
-    width: 100%;
-    cursor: pointer;
-}
-
-.specific-version {
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: 80px;
-}
-
-.content {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 30px;
-}
-
-.version-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-/* Make the select wrapper and build button share the same width */
-.select-wrapper,
-.build-button {
-    width: 220px;
-    max-width: 100%;
-}
-
-.version-controls {
-    align-items: flex-start; /* keep both left-aligned */
-}
-
-.build-button {
-    background-color: #D9C38C;
-    color: #151519;
-    border: none;
-    padding: 10px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: opacity 0.15s ease;
-    max-width: 220px;
-}
-
-.build-button:hover {
-    opacity: 0.9;
-}
-
-.versions-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    margin-top: -6%;
-    max-height: 140px;
-    overflow-y: auto;
-    padding-right: 8px;
-}
-
-.versions-list li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-}
-
-.versions-list a.version-link {
-    color: #D9C38C;
-    text-decoration: none;
-}
-
-.versions-list .status {
-    font-size: 12px;
-    color: #8B8B9C;
-}
-
-.version-meta {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.version-date {
-    color: #7a7a7a;
-    font-size: 10px;
-    opacity: 0.5;
-}
-
-.version-status {
-    color: #DD612B;
-    font-size: 0.8em;
-    opacity: 0.75;
-}
-
-li:not(:last-child) {
-    padding-bottom: 0.25em;
-}
-
 /* Cards */
 .card {
     background-color: #1a1a1e;
@@ -256,6 +113,69 @@ li:not(:last-child) {
     border-color: #D9C38C;
 }
 
+.download-dropdown {
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.download-dropdown .download-button {
+    cursor: pointer;
+    list-style: none;
+}
+
+.download-dropdown[open] .download-button {
+    border-radius: 6px 6px 0 0;
+}
+
+.download-dropdown .download-button::-webkit-details-marker {
+    display: none;
+}
+
+.download-dropdown .download-button::after {
+    content: '⌄';
+    display: inline-flex;
+    align-items: center;
+    margin-left: 8px;
+    transform: translateY(-3px);
+}
+
+.download-option {
+    display: block;
+    position: relative;
+    z-index: 10;
+    background-color: #202024;
+    color: #D9C38C;
+    text-decoration: none;
+    padding: 10px 20px;
+    border: 1px solid #3a3a3e;
+    border-top: none;
+    font-size: 13px;
+    text-align: center;
+}
+
+.download-dropdown[open] .download-option {
+    position: absolute;
+    left: 0;
+    right: 0;
+}
+
+.download-dropdown[open] .download-option:nth-of-type(1) {
+    top: calc(100% - 10px);
+}
+
+.download-dropdown[open] .download-option:nth-of-type(2) {
+    top: calc(100% + 25px);
+}
+
+.download-option:hover {
+    background-color: #D9C38C;
+    color: #151519;
+}
+
+.download-option:last-child {
+    border-radius: 0 0 6px 6px;
+}
+
 .build-date {
     color: #8B8B9C;
     font-size: 11px;
@@ -287,8 +207,6 @@ li:not(:last-child) {
 footer {
     text-align: center;
     margin-top: auto;
-    padding-top: 30px;
-    border-top: 1px solid #2a2a2e;
     width: 100%;
 }
 
@@ -313,18 +231,5 @@ footer label {
 @media (max-width: 1024px) {
     .dashboard-grid {
         grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 700px) {
-    .content {
-        grid-template-columns: 1fr;
-    }
-    .select-wrapper {
-        max-width: 100%;
-    }
-    .select-wrapper,
-    .build-button {
-        width: 100%;
     }
 }

@@ -22,7 +22,6 @@
                     <div class="download-icon">🪟</div>
                     <div class="download-info">
                         <div class="download-name">Windows</div>
-                        <div class="download-status"><!-- Will be used later for indicating version --></div>
                     </div>
                 </div>
                 <a href="https://nightly.link/MathiasDPX/aseprite-bin/workflows/windows/master/aseprite-windows.zip"
@@ -43,8 +42,13 @@
                         <div class="download-status"></div>
                     </div>
                 </div>
-                <a href="https://nightly.link/MathiasDPX/aseprite-bin/workflows/linux/master/aseprite-linux.zip"
-                    class="download-button">Download for Linux</a>
+                <details class="download-dropdown">
+                    <summary class="download-button">Download for Linux</summary>
+                    <a href="https://nightly.link/MathiasDPX/aseprite-bin/workflows/linux/master/aseprite-linux.zip"
+                        class="download-option">as binary</a>
+                    <a href="https://nightly.link/MathiasDPX/aseprite-bin/workflows/linux/master/Aseprite.AppImage.zip"
+                        class="download-option">as AppImage</a>
+                </details>
                 <a href="https://github.com/MathiasDPX/aseprite-bin/actions/workflows/linux.yml?query=is%3Asuccess"
                     class="archives-button"
                     target="_blank">View Archives →</a>
@@ -67,21 +71,6 @@
                     class="archives-button"
                     target="_blank">View Archives →</a>
                 <div class="build-date" id="macos-build-time">Last build: unknown</div>
-            </div>
-        </div>
-        <div class="specific-version card">
-            <h2 class="card-title">Specific versions</h2>
-            <div class="content">
-                <div class="version-controls">
-                    <div class="select-wrapper">
-                        <select id="version-select" aria-label="Select version"></select>
-                    </div>
-                    <button id="build-button" class="build-button">Build</button>
-                </div>
-
-                <div>
-                    <ul id="versions-list" class="versions-list"></ul>
-                </div>
             </div>
         </div>
         <footer>
