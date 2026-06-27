@@ -114,7 +114,6 @@ if [ -n "${GITHUB_WORKFLOW:-}" ]; then
   mkdir -p "${WORKDIR}/github"
   rm -rf "${WORKDIR}/github/${OUTDIR##*/}"
   mv "${OUTDIR}" "${WORKDIR}/github/"
-  cp "${WORKDIR}/Aseprite.AppImage" "${WORKDIR}/github/Aseprite.AppImage"
   echo "ASEPRITE_VERSION=${ASEPRITE_VERSION}" >> "${GITHUB_OUTPUT:-/dev/null}" || true
 fi
 
