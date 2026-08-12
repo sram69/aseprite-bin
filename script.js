@@ -28,7 +28,7 @@ function getRelativeTimeString(date) {
 
 async function updateBuildTimes() {
     try {
-        const response = await fetch('https://api.github.com/repos/MathiasDPX/aseprite-bin/actions/runs');
+        const response = await fetch('https://api.github.com/repos/sramva/aseprite-bin/actions/runs');
         const data = await response.json();
         
         const workflowMap = {
