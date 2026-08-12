@@ -42,7 +42,7 @@ async function updateBuildTimes() {
         data.workflow_runs.forEach(run => {
             const displayName = run.display_title || run.name;
             
-            if (workflowMap[displayName] && run.status === 'completed') {
+            if (workflowMap[displayName] && run.status === 'completed' && run.conclusion === "success") {
                 if (!latestRuns[displayName] || new Date(run.updated_at) > new Date(latestRuns[displayName].updated_at)) {
                     latestRuns[displayName] = run;
                 }
