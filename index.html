@@ -4,81 +4,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#7d929e">
     <title>aseprite-bin</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div class="container">
-        <header>
-            <img id="icon" src="https://upload.wikimedia.org/wikipedia/commons/6/69/Logo_Aseprite.svg" alt="Aseprite Logo">
-        </header>
-        <div class="dashboard-grid">
-            <!-- Windows -->
-            <div class="card">
-                <h2 class="card-title">Windows Build</h2>
-                <div class="download-item">
-                    <div class="download-icon">🪟</div>
-                    <div class="download-info">
-                        <div class="download-name">Windows</div>
-                    </div>
+    <main class="app">
+        <section class="content">
+            <div class="intro">
+                <img id="icon" src="./favicon.png" alt="Aseprite">
+                <div>
+                    <p class="eyebrow">LATEST BUILDS</p>
+                    <h1>Download Aseprite</h1>
                 </div>
-                <a href="https://nightly.link/sramva/aseprite-bin/workflows/windows/master/aseprite-windows.zip"
-                    class="download-button">Download for Windows</a>
-                <a href="https://github.com/sramva/aseprite-bin/actions/workflows/windows.yml?query=is%3Asuccess"
-                    class="archives-button"
-                    target="_blank">View Archives →</a>
-                <div class="build-date" id="windows-build-time">Last build: unknown</div>
             </div>
 
-            <!-- Linux -->
-            <div class="card">
-                <h2 class="card-title">Linux Build</h2>
-                <div class="download-item">
-                    <div class="download-icon">🐧</div>
-                    <div class="download-info">
-                        <div class="download-name">Linux</div>
-                        <div class="download-status"></div>
+            <div class="dashboard-grid">
+                <article class="card">
+                    <div class="card-heading">
+                        <span class="platform-icon windows-icon" aria-hidden="true">🪟</span>
+                        <div>
+                            <h2>Windows</h2>
+                        </div>
                     </div>
-                </div>
-                <details class="download-dropdown">
-                    <summary class="download-button">Download for Linux</summary>
-                    <a href="https://nightly.link/sramva/aseprite-bin/workflows/linux/master/aseprite-linux.zip"
-                        class="download-option">as binary</a>
-                    <a href="https://nightly.link/sramva/aseprite-bin/workflows/linux/master/Aseprite.AppImage.zip"
-                        class="download-option">as AppImage</a>
-                </details>
-                <a href="https://github.com/sramva/aseprite-bin/actions/workflows/linux.yml?query=is%3Asuccess"
-                    class="archives-button"
-                    target="_blank">View Archives →</a>
-                <div class="build-date" id="linux-build-time">Last build: unknown</div>
+                    <p class="package-name">aseprite-windows.zip</p>
+                    <a href="https://nightly.link/sramva/aseprite-bin/workflows/windows/master/aseprite-windows.zip"
+                        class="download-button">Download</a>
+                    <a href="https://github.com/sramva/aseprite-bin/actions/workflows/windows.yml?query=is%3Asuccess"
+                        class="archives-button" target="_blank">View archives ↗</a>
+                    <div class="build-date" id="windows-build-time">Last build: unknown</div>
+                </article>
+
+                <article class="card">
+                    <div class="card-heading">
+                        <span class="platform-icon linux-icon" aria-hidden="true">🐧</span>
+                        <div>
+                            <h2>Linux</h2>
+                        </div>
+                    </div>
+                    <p class="package-name">Binary or AppImage</p>
+                    <details class="download-dropdown">
+                        <summary class="download-button">Download <span>▾</span></summary>
+                        <div class="dropdown-menu">
+                            <a href="https://nightly.link/sramva/aseprite-bin/workflows/linux/master/aseprite-linux.zip"
+                                class="download-option">Linux binary <span>.zip</span></a>
+                            <a href="https://nightly.link/sramva/aseprite-bin/workflows/linux/master/Aseprite.AppImage.zip"
+                                class="download-option">AppImage <span>.zip</span></a>
+                        </div>
+                    </details>
+                    <a href="https://github.com/sramva/aseprite-bin/actions/workflows/linux.yml?query=is%3Asuccess"
+                        class="archives-button" target="_blank">View archives ↗</a>
+                    <div class="build-date" id="linux-build-time">Last build: unknown</div>
+                </article>
+
+                <article class="card">
+                    <div class="card-heading">
+                        <span class="platform-icon macos-icon" aria-hidden="true">🍎</span>
+                        <div>
+                            <h2>macOS</h2>
+                        </div>
+                    </div>
+                    <p class="package-name">aseprite-macos.zip</p>
+                    <a href="https://nightly.link/sramva/aseprite-bin/workflows/macos/master/aseprite-macos.zip"
+                        onclick="macos_alert()" class="download-button">Download</a>
+                    <a href="https://github.com/sramva/aseprite-bin/actions/workflows/macos.yml?query=is%3Asuccess"
+                        class="archives-button" target="_blank">View archives ↗</a>
+                    <div class="build-date" id="macos-build-time">Last build: unknown</div>
+                </article>
             </div>
 
-            <!-- macOS -->
-            <div class="card">
-                <h2 class="card-title">macOS Build</h2>
-                <div class="download-item">
-                    <div class="download-icon">🍎</div>
-                    <div class="download-info">
-                        <div class="download-name">macOS</div>
-                        <div class="download-status"></div>
-                    </div>
-                </div>
-                <a href="https://nightly.link/sramva/aseprite-bin/workflows/macos/master/aseprite-macos.zip"
-                    onclick="macos_alert()" class="download-button">Download for macOS</a>
-                <a href="https://github.com/sramva/aseprite-bin/actions/workflows/macos.yml?query=is%3Asuccess"
-                    class="archives-button"
-                    target="_blank">View Archives →</a>
-                <div class="build-date" id="macos-build-time">Last build: unknown</div>
+            <div class="notice">
+                <span>i</span>
+                <p>Unofficial community builds. If you enjoy Aseprite, consider
+                    <a href="https://www.aseprite.org/" target="_blank">supporting its developers</a>.</p>
             </div>
-        </div>
+        </section>
+
+        <div class="film-decorator" aria-hidden="true"></div>
         <footer>
-            <a href="https://github.com/sramva/aseprite-bin" target="_blank">Open-source on GitHub</a>
-            <label> • </label>
+            <a href="https://github.com/sramva/aseprite-bin" target="_blank">GitHub</a>
+            <span>•</span>
             <a href="https://github.com/aseprite/aseprite" target="_blank">aseprite/aseprite</a>
         </footer>
-    </div>
+    </main>
     <script src="script.js"></script>
 </body>
 
